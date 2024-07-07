@@ -34,7 +34,7 @@ const posts = [
       name: "Diego Fernandes",
       role: "Web developer",
     },
-    publishedAt: new Date("2024-05-12 10:13:00"),
+    publishedAt: new Date("2024-06-12 10:13:00"),
     content: [
       {
         type: "paragraph",

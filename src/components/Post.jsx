@@ -1,10 +1,15 @@
+import { useState } from "react";
 import { Avatar } from "./Avatar";
 import { Comment } from "./Comment";
 import styles from "./Post.module.css";
 import { format, formatDistanceToNow } from "date-fns";
 import ptBR from "date-fns/locale/pt-BR";
+import { Link } from "@phosphor-icons/react";
 
 export function Post({ author, publishedAt, content }) {
+  const [comments, setComments] = useState(["Post muito massaaaaaa! 👏👏"]);
+  const [newCommentText, setNewCommentText] = useState("");
+
   const publishedDateTitle = format(publishedAt, "d 'de' LLLL 'às' HH:mm'h'", {
     locale: ptBR,
   });
@@ -13,6 +18,32 @@ export function Post({ author, publishedAt, content }) {
     locale: ptBR,
     addSuffix: true,
   });
+
+  function handleCreateNewComment(event) {
+    event.preventDefault();
+
+    const newComment = {
+      content: newCommentText,
+    };
+
+    setComments([...comments, newCommentText]);
+    setNewCommentText("");
+  }
+
+  function handleNewCommentChange(event) {
+    event.target.setCustomValidity("");
+    setNewCommentText(event.target.value);
+  }
+
+  function deleteComment(commentToDelete) {
+    setComments(comments.filter((comment) => comment !== commentToDelete));
+  }
+
+  function handleInvalidComment(event) {
+    event.target.setCustomValidity("Esse campo é obrigatório!");
+  }
+
+  const isNewCommentEmpty = !newCommentText;
 
   return (
     <article className={styles.post}>
@@ -32,31 +63,45 @@ export function Post({ author, publishedAt, content }) {
       </header>
 
       <div className={styles.content}>
-        {content.map((line) => {
-          if (line.type === "paragraph") return <p>{line.content}</p>;
+        {content.map((line, i) => {
+          if (line.type === "paragraph")
+            return <p key={line.content + i}>{line.content}</p>;
           else if (line.type === "link")
             return (
-              <p>
+              <p key={Link.content + i}>
                 <a href="">{line.content}</a>
               </p>
             );
         })}
       </div>
 
-      <form className={styles.commentForm}>
+      <form className={styles.commentForm} onSubmit={handleCreateNewComment}>
         <strong>Deixe seu feedback</strong>
 
-        <textarea placeholder="Deixe um comentário" />
+        <textarea
+          name="comment"
+          placeholder="Deixe um comentário"
+          onChange={handleNewCommentChange}
+          value={newCommentText}
+          onInvalid={handleInvalidComment}
+          required
+        />
 
         <footer>
-          <button type="submit">Publicar</button>
+          <button disabled={isNewCommentEmpty} type="submit">
+            Publicar
+          </button>
         </footer>
       </form>
 
       <div className={styles.commentList}>
-        <Comment />
-        <Comment />
-        <Comment />
+        {comments.map((comment) => (
+          <Comment
+            content={comment}
+            key={comment}
+            onDeleteComment={deleteComment}
+          />
+        ))}
       </div>
     </article>
   );
