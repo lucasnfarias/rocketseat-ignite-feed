@@ -1,12 +1,33 @@
-import { useState } from "react";
+import { format, formatDistanceToNow } from "date-fns";
+import ptBR from "date-fns/locale/pt-BR";
+import { ChangeEvent, FormEvent, InvalidEvent, useState } from "react";
 import { Avatar } from "./Avatar";
 import { Comment } from "./Comment";
 import styles from "./Post.module.css";
-import { format, formatDistanceToNow } from "date-fns";
-import ptBR from "date-fns/locale/pt-BR";
-import { Link } from "@phosphor-icons/react";
 
-export function Post({ author, publishedAt, content }) {
+interface Author {
+  name: string;
+  role: string;
+  avatarUrl: string;
+}
+
+interface Content {
+  type: "paragraph" | "link";
+  content: string;
+}
+
+export interface PostType {
+  id: number;
+  author: Author;
+  publishedAt: Date;
+  content: Content[];
+}
+
+interface PostProps {
+  post: PostType;
+}
+
+export function Post({ post: { author, publishedAt, content } }: PostProps) {
   const [comments, setComments] = useState(["Post muito massaaaaaa! 👏👏"]);
   const [newCommentText, setNewCommentText] = useState("");
 
@@ -19,28 +40,24 @@ export function Post({ author, publishedAt, content }) {
     addSuffix: true,
   });
 
-  function handleCreateNewComment(event) {
+  function handleCreateNewComment(event: FormEvent) {
     event.preventDefault();
-
-    const newComment = {
-      content: newCommentText,
-    };
 
     setComments([...comments, newCommentText]);
     setNewCommentText("");
   }
 
-  function handleNewCommentChange(event) {
+  function handleNewCommentChange(event: ChangeEvent<HTMLTextAreaElement>) {
     event.target.setCustomValidity("");
     setNewCommentText(event.target.value);
   }
 
-  function deleteComment(commentToDelete) {
-    setComments(comments.filter((comment) => comment !== commentToDelete));
+  function handleInvalidComment(event: InvalidEvent<HTMLTextAreaElement>) {
+    event.target.setCustomValidity("Esse campo é obrigatório!");
   }
 
-  function handleInvalidComment(event) {
-    event.target.setCustomValidity("Esse campo é obrigatório!");
+  function deleteComment(commentToDelete: string) {
+    setComments(comments.filter((comment) => comment !== commentToDelete));
   }
 
   const isNewCommentEmpty = !newCommentText;
@@ -68,7 +85,7 @@ export function Post({ author, publishedAt, content }) {
             return <p key={line.content + i}>{line.content}</p>;
           else if (line.type === "link")
             return (
-              <p key={Link.content + i}>
+              <p key={line.content + i}>
                 <a href="">{line.content}</a>
               </p>
             );
